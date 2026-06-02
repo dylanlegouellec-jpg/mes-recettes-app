@@ -1,0 +1,71 @@
+import { type FC, type ChangeEvent, useRef, useEffect } from 'react';
+
+interface StepsInputProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+  accent: 'terracotta' | 'sage';
+}
+
+const AutoSizeTextarea: FC<{
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  ringClass: string;
+  index: number;
+}> = ({ value, onChange, placeholder, ringClass, index }) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const tx = textareaRef.current;
+    if (!tx) return;
+    tx.style.height = 'auto';
+    tx.style.height = `${tx.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea ref={textareaRef} value={value} rows={1} placeholder={placeholder} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)} className={`flex-1 px-3.5 py-2 rounded-xl bg-white/70 border border-brown/15 font-sans text-sm text-brown placeholder:text-brown/25 resize-none overflow-hidden leading-relaxed transition-all focus:outline-none focus:ring-2 focus:bg-white ${ringClass}`} />
+  );
+};
+
+const StepsInput: FC<StepsInputProps> = ({ value, onChange, accent }) => {
+  const handleChange = (index: number, val: string) => {
+    const next = [...value];
+    next[index] = val;
+    onChange(next);
+  };
+
+  const addStep = () => {
+    onChange([...value, '']);
+  };
+
+  const removeStep = (index: number) => {
+    if (value.length === 1) {
+      onChange(['']);
+    } else {
+      onChange(value.filter((_, i) => i !== index));
+    }
+  };
+
+  const ringClass = accent === 'sage' ? 'focus:ring-sage/20 focus:border-sage/50' : 'focus:ring-terracotta/20 focus:border-terracotta/50';
+  const badgeClass = accent === 'sage' ? 'bg-sage' : 'bg-terracotta';
+  const btnTextClass = accent === 'sage' ? 'text-sage hover:bg-sage/8' : 'text-terracotta hover:bg-terracotta/8';
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-3">
+        {value.map((step, index) => (
+          <div key={index} className="flex items-start gap-3">
+            <span className={`mt-1.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-sans font-semibold text-xs text-white shadow-sm ${badgeClass}`}>
+              {index + 1}
+            </span>
+            <AutoSizeTextarea value={step} index={index} placeholder="Étape..." onChange={(val) => handleChange(index, val)} ringClass={ringClass} />
+            <button type="button" onClick={() => removeStep(index)} className="mt-1 p-2 rounded-xl text-brown/40 hover:text-red-500 transition-all">✕</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={addStep} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-sans font-medium text-sm transition-all ${btnTextClass}`}>+ Ajouter une étape</button>
+    </div>
+  );
+};
+
+export default StepsInput;
