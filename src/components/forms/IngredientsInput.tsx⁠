@@ -1,0 +1,55 @@
+import { type FC, type ChangeEvent } from 'react';
+import type { Ingredient } from '../../types/recipe';
+
+export const EMPTY_INGREDIENT: Ingredient = {
+  nom: '',
+  quantite: '',
+  unite: '',
+};
+
+interface IngredientsInputProps {
+  value: Ingredient[];
+  onChange: (value: Ingredient[]) => void;
+  accent: 'terracotta' | 'sage';
+}
+
+const IngredientsInput: FC<IngredientsInputProps> = ({ value, onChange, accent }) => {
+  const handleChange = (index: number, field: keyof Ingredient, val: string) => {
+    const next = [...value];
+    next[index] = { ...next[index], [field]: val };
+    onChange(next);
+  };
+
+  const addRow = () => {
+    onChange([...value, { ...EMPTY_INGREDIENT }]);
+  };
+
+  const removeRow = (index: number) => {
+    if (value.length === 1) {
+      onChange([{ ...EMPTY_INGREDIENT }]);
+    } else {
+      onChange(value.filter((_, i) => i !== index));
+    }
+  };
+
+  const ringClass = accent === 'sage' ? 'focus:ring-sage/20 focus:border-sage/50' : 'focus:ring-terracotta/20 focus:border-terracotta/50';
+  const btnTextClass = accent === 'sage' ? 'text-sage hover:bg-sage/8' : 'text-terracotta hover:bg-terracotta/8';
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+        {value.map((ing, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <input type="text" value={ing.quantite} placeholder="Ex: 150" onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'quantite', e.target.value)} className={`w-20 px-3 py-2 rounded-xl bg-white/70 border border-brown/15 font-sans text-sm text-brown text-center placeholder:text-brown/25 transition-all focus:outline-none focus:ring-2 focus:bg-white ${ringClass}`} />
+            <input type="text" value={ing.unite} placeholder="g, ml" onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'unite', e.target.value)} className={`w-24 px-3 py-2 rounded-xl bg-white/70 border border-brown/15 font-sans text-sm text-brown text-center placeholder:text-brown/25 transition-all focus:outline-none focus:ring-2 focus:bg-white ${ringClass}`} />
+            <input type="text" value={ing.nom} placeholder="Nom de l'ingrédient" onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, 'nom', e.target.value)} className={`flex-1 px-3.5 py-2 rounded-xl bg-white/70 border border-brown/15 font-sans text-sm text-brown placeholder:text-brown/25 transition-all focus:outline-none focus:ring-2 focus:bg-white ${ringClass}`} />
+            <button type="button" onClick={() => removeRow(index)} className="p-2 rounded-xl text-brown/40 hover:text-red-500 transition-all">✕</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={addRow} className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl font-sans font-medium text-sm transition-all ${btnTextClass}`}>+ Ajouter un ingrédient</button>
+    </div>
+  );
+};
+
+export default IngredientsInput;
