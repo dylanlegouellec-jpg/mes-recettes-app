@@ -1,1 +1,59 @@
+import { useState, useEffect, useCallback } from 'react';
+import type { Recipe, RecipeCreatePayload } from '../types/recipe';
+
+const LOCAL_STORAGE_KEY = 'mes-recettes-data';
+
+export function useRecipes() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+
+  // Charger les recettes au démarrage
+  useEffect(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        setRecipes(JSON.parse(saved));
+      } catch (e) {
+        console.error("Erreur de lecture du localStorage", e);
+      }
+    }
+  }, []);
+
+  // Sauvegarder à chaque modification
+  const saveRecipes = (nextRecipes: Recipe[]) => {
+    setRecipes(nextRecipes);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(nextRecipes));
+  };
+
+  const addRecipe = useCallback((payload: RecipeCreatePayload) => {
+    const newRecipe: Recipe = {
+      ...payload,
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+      createdAt: Date.now(),
+    };
+    setRecipes((prev) => {
+      const next = [newRecipe, ...prev];
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+    return newRecipe;
+  }, []);
+
+  const updateRecipe = useCallback((id: string, payload: RecipeCreatePayload) => {
+    setRecipes((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, ...payload } : r));
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const deleteRecipe = useCallback((id: string) => {
+    setRecipes((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  return { recipes, addRecipe, updateRecipe, deleteRecipe };
+}
 
